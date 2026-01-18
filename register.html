@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب - AL-Pharmacist</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="index.html" class="navbar-brand">
+                💊 <span>AL-Pharmacist</span>
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="index.html" class="navbar-link">الرئيسية</a></li>
+                <li><a href="login.html" class="navbar-link">تسجيل الدخول</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Registration Section -->
+    <section class="section">
+        <div class="container">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <div class="card">
+                    <h2 class="text-center mb-3">إنشاء حساب جديد</h2>
+                    <p class="text-center mb-4" style="color: var(--gray);">
+                        انضم إلى منصة AL-Pharmacist وابدأ رحلتك التعليمية
+                    </p>
+                    
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label class="form-label">الاسم الكامل</label>
+                            <input type="text" id="fullName" class="form-input" required 
+                                   placeholder="أدخل اسمك الكامل">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" id="email" class="form-input" required 
+                                   placeholder="example@email.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">كلمة المرور</label>
+                            <input type="password" id="password" class="form-input" required 
+                                   placeholder="8 أحرف على الأقل">
+                            <small style="color: var(--gray); font-size: 0.875rem;">
+                                يجب أن تكون كلمة المرور 8 أحرف على الأقل
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">تأكيد كلمة المرور</label>
+                            <input type="password" id="confirmPassword" class="form-input" required 
+                                   placeholder="أعد إدخال كلمة المرور">
+                        </div>
+
+                        <div id="errorMessage" class="form-error" style="display: none;"></div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                            إنشاء الحساب
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <p style="color: var(--gray);">
+                            لديك حساب بالفعل؟ 
+                            <a href="login.html" style="font-weight: 600;">تسجيل الدخول</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        // Check if already logged in
+        redirectIfAuthenticated();
+
+        // Handle registration form
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            // Reset error
+            errorDiv.style.display = 'none';
+            
+            // Validation
+            if (!fullName || fullName.length < 3) {
+                errorDiv.textContent = 'الاسم يجب أن يكون 3 أحرف على الأقل';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                errorDiv.textContent = 'البريد الإلكتروني غير صحيح';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (password.length < 8) {
+                errorDiv.textContent = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'كلمات المرور غير متطابقة';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري إنشاء الحساب...';
+            
+            try {
+                const { data, error } = await signUp(email, password, fullName);
+                
+                if (error) {
+                    if (error.message.includes('already registered')) {
+                        errorDiv.textContent = 'البريد الإلكتروني مسجل بالفعل';
+                    } else {
+                        errorDiv.textContent = 'حدث خطأ: ' + error.message;
+                    }
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'إنشاء الحساب';
+                    return;
+                }
+                
+                showSuccess('تم إنشاء الحساب بنجاح!');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+                
+            } catch (err) {
+                errorDiv.textContent = 'حدث خطأ. حاول مرة أخرى';
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'إنشاء الحساب';
+            }
+        });
+    </script>
+</body>
+</html>

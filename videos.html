@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الفيديوهات التعليمية - AL-Pharmacist</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="dashboard.html" class="navbar-brand">
+                💊 <span>AL-Pharmacist</span>
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="navbar-link">لوحة التحكم</a></li>
+                <li><a href="videos.html" class="navbar-link">الفيديوهات</a></li>
+                <li><a href="quizzes.html" class="navbar-link">الاختبارات</a></li>
+                <li><a href="files.html" class="navbar-link">الملفات</a></li>
+                <li><a href="#" onclick="signOut(); return false;" class="navbar-link btn btn-secondary">تسجيل الخروج</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="section" style="padding-top: 2rem; padding-bottom: 1rem;">
+        <div class="container">
+            <h1>الفيديوهات التعليمية 🎥</h1>
+            <p style="color: var(--gray);">شاهد المحاضرات والمراجعات التعليمية</p>
+        </div>
+    </section>
+
+    <!-- Filter Tabs -->
+    <section class="section" style="padding-top: 0;">
+        <div class="container">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-category="all">الكل</button>
+                <button class="filter-tab" data-category="lecture">المحاضرات</button>
+                <button class="filter-tab" data-category="review">المراجعات</button>
+                <button class="filter-tab" data-category="application">التطبيقات</button>
+            </div>
+
+            <div id="loading"></div>
+            <div id="videosContainer" class="card-grid"></div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/videos.js"></script>
+    
+    <script>
+        let allVideos = [];
+        let currentCategory = 'all';
+
+        // Protect page and load videos
+        (async () => {
+            const isAuth = await requireAuth();
+            if (!isAuth) return;
+            
+            await loadVideos();
+        })();
+
+        async function loadVideos() {
+            showLoading('loading');
+            
+            try {
+                allVideos = await getAllVideos();
+                filterAndDisplay();
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                showError('حدث خطأ أثناء تحميل الفيديوهات');
+            } finally {
+                hideLoading('loading');
+            }
+        }
+
+        function filterAndDisplay() {
+            const filteredVideos = filterVideosByCategory(allVideos, currentCategory);
+            renderVideoCards(filteredVideos, 'videosContainer');
+        }
+
+        // Filter tabs functionality
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active tab
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update current category and display
+                currentCategory = tab.dataset.category;
+                filterAndDisplay();
+            });
+        });
+    </script>
+</body>
+</html>

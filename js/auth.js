@@ -1,0 +1,135 @@
+// Authentication Service
+
+/**
+ * Sign up a new user
+ */
+async function signUp(email, password, fullName) {
+    try {
+        // Create user account
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: fullName
+                }
+            }
+        });
+
+        if (authError) throw authError;
+
+        // Create profile
+        if (authData.user) {
+            const { error: profileError } = await supabaseClient
+                .from('profiles')
+                .insert([
+                    {
+                        id: authData.user.id,
+                        full_name: fullName,
+                        email: email
+                    }
+                ]);
+
+            if (profileError) throw profileError;
+        }
+
+        return { data: authData, error: null };
+    } catch (error) {
+        return { data: null, error: error };
+    }
+}
+
+/**
+ * Sign in user
+ */
+async function signIn(email, password) {
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        return { data: null, error };
+    }
+}
+
+/**
+ * Sign out user
+ */
+async function signOut() {
+    try {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) throw error;
+        window.location.href = 'index.html';
+    } catch (error) {
+        showError('حدث خطأ أثناء تسجيل الخروج');
+    }
+}
+
+/**
+ * Get current user
+ */
+async function getCurrentUser() {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        return user;
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Get current session
+ */
+async function getSession() {
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        return session;
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Require authentication - Redirect to login if not authenticated
+ */
+async function requireAuth() {
+    const session = await getSession();
+    if (!session) {
+        window.location.href = 'login.html';
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Get user profile
+ */
+async function getUserProfile(userId) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+    }
+}
+
+/**
+ * Check if user is already logged in and redirect to dashboard
+ */
+async function redirectIfAuthenticated() {
+    const session = await getSession();
+    if (session) {
+        window.location.href = 'dashboard.html';
+    }
+}

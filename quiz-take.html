@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حل الاختبار - AL-Pharmacist</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="dashboard.html" class="navbar-brand">
+                💊 <span>AL-Pharmacist</span>
+            </a>
+            <ul class="navbar-menu">
+                <li><span id="quiz-timer" class="quiz-timer">--:--</span></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Quiz Section -->
+    <section class="section">
+        <div class="container">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <a href="quizzes.html" class="btn btn-outline mb-3">← العودة للاختبارات</a>
+                
+                <div id="loading"></div>
+                
+                <div class="quiz-card">
+                    <h2 id="quizTitle" class="text-center mb-3">عنوان الاختبار</h2>
+                    <div id="question-container"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/quizzes.js"></script>
+    
+    <script>
+        // Protect page and load quiz
+        (async () => {
+            const isAuth = await requireAuth();
+            if (!isAuth) return;
+            
+            const quizId = getQueryParam('id');
+            if (!quizId) {
+                showError('الاختبار غير موجود');
+                setTimeout(() => {
+                    window.location.href = 'quizzes.html';
+                }, 2000);
+                return;
+            }
+            
+            await loadQuiz(quizId);
+        })();
+
+        async function loadQuiz(quizId) {
+            showLoading('loading');
+            
+            try {
+                const quiz = await getQuizById(quizId);
+                
+                if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+                    showError('الاختبار غير موجود أو لا يحتوي على أسئلة');
+                    setTimeout(() => {
+                        window.location.href = 'quizzes.html';
+                    }, 2000);
+                    return;
+                }
+                
+                // Update quiz title
+                document.getElementById('quizTitle').textContent = quiz.title;
+                
+                // Hide timer if no time limit
+                if (!quiz.time_limit) {
+                    document.getElementById('quiz-timer').style.display = 'none';
+                }
+                
+                // Start quiz
+                startQuiz(quiz);
+                
+            } catch (error) {
+                console.error('Error loading quiz:', error);
+                showError('حدث خطأ أثناء تحميل الاختبار');
+            } finally {
+                hideLoading('loading');
+            }
+        }
+    </script>
+</body>
+</html>

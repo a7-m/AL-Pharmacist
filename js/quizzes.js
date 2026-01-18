@@ -1,0 +1,271 @@
+// Quizzes Service
+
+let currentQuiz = null;
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let userAnswers = {};
+let quizTimer = null;
+let timeRemaining = 0;
+
+/**
+ * Get all quizzes
+ */
+async function getAllQuizzes() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('quizzes')
+            .select('*, questions(count)')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error fetching quizzes:', error);
+        showError('حدث خطأ أثناء تحميل الاختبارات');
+        return [];
+    }
+}
+
+/**
+ * Get quiz by ID with questions
+ */
+async function getQuizById(quizId) {
+    try {
+        const { data: quiz, error: quizError } = await supabaseClient
+            .from('quizzes')
+            .select('*')
+            .eq('id', quizId)
+            .single();
+
+        if (quizError) throw quizError;
+
+        const { data: questions, error: questionsError } = await supabaseClient
+            .from('questions')
+            .select('*')
+            .eq('quiz_id', quizId)
+            .order('order', { ascending: true });
+
+        if (questionsError) throw questionsError;
+
+        return { ...quiz, questions };
+    } catch (error) {
+        console.error('Error fetching quiz:', error);
+        return null;
+    }
+}
+
+/**
+ * Start quiz
+ */
+function startQuiz(quiz) {
+    currentQuiz = quiz;
+    currentQuestions = quiz.questions;
+    currentQuestionIndex = 0;
+    userAnswers = {};
+    
+    if (quiz.time_limit) {
+        timeRemaining = quiz.time_limit * 60; // Convert to seconds
+        startTimer();
+    }
+    
+    displayQuestion();
+}
+
+/**
+ * Start timer
+ */
+function startTimer() {
+    const timerElement = document.getElementById('quiz-timer');
+    
+    quizTimer = setInterval(() => {
+        timeRemaining--;
+        
+        if (timerElement) {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        if (timeRemaining <= 0) {
+            clearInterval(quizTimer);
+            submitQuiz();
+        }
+    }, 1000);
+}
+
+/**
+ * Display current question
+ */
+function displayQuestion() {
+    const question = currentQuestions[currentQuestionIndex];
+    const container = document.getElementById('question-container');
+    
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="question-header">
+            <span class="question-number">السؤال ${currentQuestionIndex + 1} من ${currentQuestions.length}</span>
+        </div>
+        <div class="question-text">
+            <h3>${question.question_text}</h3>
+        </div>
+        <div class="question-options">
+            ${question.options.map((option, index) => `
+                <label class="option-label">
+                    <input type="radio" 
+                           name="answer" 
+                           value="${index}"
+                           ${userAnswers[question.id] === index ? 'checked' : ''}
+                           onchange="selectAnswer(${question.id}, ${index})">
+                    <span class="option-text">${option}</span>
+                </label>
+            `).join('')}
+        </div>
+        <div class="question-navigation">
+            <button class="btn btn-secondary" 
+                    onclick="previousQuestion()" 
+                    ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                السابق
+            </button>
+            <button class="btn btn-primary" 
+                    onclick="${currentQuestionIndex === currentQuestions.length - 1 ? 'submitQuiz()' : 'nextQuestion()'}">
+                ${currentQuestionIndex === currentQuestions.length - 1 ? 'إنهاء الاختبار' : 'التالي'}
+            </button>
+        </div>
+    `;
+}
+
+/**
+ * Select answer
+ */
+function selectAnswer(questionId, answerIndex) {
+    userAnswers[questionId] = answerIndex;
+}
+
+/**
+ * Next question
+ */
+function nextQuestion() {
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+        currentQuestionIndex++;
+        displayQuestion();
+    }
+}
+
+/**
+ * Previous question
+ */
+function previousQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        displayQuestion();
+    }
+}
+
+/**
+ * Calculate score
+ */
+function calculateScore() {
+    let correctAnswers = 0;
+    
+    currentQuestions.forEach(question => {
+        if (userAnswers[question.id] === question.correct_answer) {
+            correctAnswers++;
+        }
+    });
+    
+    return Math.round((correctAnswers / currentQuestions.length) * 100);
+}
+
+/**
+ * Submit quiz
+ */
+async function submitQuiz() {
+    if (quizTimer) {
+        clearInterval(quizTimer);
+    }
+    
+    const score = calculateScore();
+    const user = await getCurrentUser();
+    
+    try {
+        // Save attempt to database
+        const { error } = await supabaseClient
+            .from('quiz_attempts')
+            .insert([
+                {
+                    user_id: user.id,
+                    quiz_id: currentQuiz.id,
+                    score: score,
+                    answers: userAnswers,
+                    completed_at: new Date().toISOString()
+                }
+            ]);
+
+        if (error) throw error;
+        
+        // Show results
+        displayResults(score);
+    } catch (error) {
+        console.error('Error submitting quiz:', error);
+        showError('حدث خطأ أثناء حفظ النتيجة');
+    }
+}
+
+/**
+ * Display results
+ */
+function displayResults(score) {
+    const container = document.getElementById('question-container');
+    const isPassed = score >= (currentQuiz.passing_score || 50);
+    
+    container.innerHTML = `
+        <div class="quiz-results">
+            <div class="result-icon ${isPassed ? 'success' : 'fail'}">
+                ${isPassed ? '✓' : '✗'}
+            </div>
+            <h2>${isPassed ? 'تهانينا!' : 'للأسف'}</h2>
+            <div class="score-circle">
+                <span class="score-number">${score}%</span>
+            </div>
+            <p class="result-message">
+                ${isPassed 
+                    ? 'لقد اجتزت الاختبار بنجاح!' 
+                    : 'لم تحصل على الدرجة المطلوبة. حاول مرة أخرى!'}
+            </p>
+            <div class="result-details">
+                <p>إجاباتك الصحيحة: ${Object.keys(userAnswers).filter(qId => {
+                    const question = currentQuestions.find(q => q.id == qId);
+                    return question && userAnswers[qId] === question.correct_answer;
+                }).length} من ${currentQuestions.length}</p>
+            </div>
+            <div class="result-actions">
+                <button class="btn btn-primary" onclick="window.location.href='quizzes.html'">
+                    العودة للاختبارات
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.reload()">
+                    إعادة المحاولة
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Get user's quiz attempts
+ */
+async function getUserAttempts(userId) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('quiz_attempts')
+            .select('*, quizzes(title)')
+            .eq('user_id', userId)
+            .order('completed_at', { ascending: false });
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error fetching attempts:', error);
+        return [];
+    }
+}

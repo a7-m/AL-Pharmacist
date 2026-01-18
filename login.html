@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - AL-Pharmacist</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="index.html" class="navbar-brand">
+                💊 <span>AL-Pharmacist</span>
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="index.html" class="navbar-link">الرئيسية</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Login Section -->
+    <section class="section">
+        <div class="container">
+            <div style="max-width: 500px; margin: 0 auto;">
+                <div class="card">
+                    <h2 class="text-center mb-3">تسجيل الدخول</h2>
+                    <p class="text-center mb-4" style="color: var(--gray);">
+                        مرحباً بعودتك! سجل دخولك للوصول إلى المحتوى التعليمي
+                    </p>
+                    
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" id="email" class="form-input" required 
+                                   placeholder="example@email.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">كلمة المرور</label>
+                            <input type="password" id="password" class="form-input" required 
+                                   placeholder="••••••••">
+                        </div>
+
+                        <div id="errorMessage" class="form-error" style="display: none;"></div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                            تسجيل الدخول
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <p style="color: var(--gray);">
+                            ليس لديك حساب؟ 
+                            <a href="register.html" style="font-weight: 600;">إنشاء حساب جديد</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        // Check if already logged in
+        redirectIfAuthenticated();
+
+        // Handle login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            // Reset error
+            errorDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري تسجيل الدخول...';
+            
+            try {
+                const { data, error } = await signIn(email, password);
+                
+                if (error) {
+                    errorDiv.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'تسجيل الدخول';
+                    return;
+                }
+                
+                showSuccess('تم تسجيل الدخول بنجاح!');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+                
+            } catch (err) {
+                errorDiv.textContent = 'حدث خطأ. حاول مرة أخرى';
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'تسجيل الدخول';
+            }
+        });
+    </script>
+</body>
+</html>
