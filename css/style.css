@@ -447,7 +447,8 @@ a:hover {
 
 .video-player {
   width: 100%;
-  max-height: 600px;
+  height: 85vh; /* Increased height for better viewing experience */
+  max-height: 800px;
 }
 
 /* ===== Quiz Components ===== */

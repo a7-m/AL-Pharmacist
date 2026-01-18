@@ -118,5 +118,44 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script>
+      async function updateUI() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (session) {
+          // 1. Update Navbar
+          const navMenu = document.getElementById('navMenu');
+          
+          // Check if admin
+          const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+          let adminBtn = '';
+          if (profile && profile.role === 'admin') {
+             // Add button next to dashboard for admin
+             adminBtn = `<li><a href="admin/index.html" class="navbar-link btn btn-sm btn-outline" style="margin-right: 5px;">+ إضافة</a></li>`;
+          }
+
+          navMenu.innerHTML = `
+            <li><a href="index.html" class="navbar-link">الرئيسية</a></li>
+            <li><a href="dashboard.html" class="navbar-link btn btn-secondary">لوحة التحكم</a></li>
+            ${adminBtn}
+          `;
+
+          // 2. Update Hero Section
+          const heroButtons = document.querySelector('.hero-buttons');
+          if (heroButtons) {
+            heroButtons.innerHTML = `
+              <a href="dashboard.html" class="btn btn-lg btn-secondary">الذهاب إلى لوحة التحكم</a>
+            `;
+          }
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', updateUI);
+    </script>
   </body>
 </html>

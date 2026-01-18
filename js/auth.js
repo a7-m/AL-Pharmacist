@@ -50,6 +50,22 @@ async function signIn(email, password) {
         });
 
         if (error) throw error;
+        if (error) throw error;
+        
+        // Check Role
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
+
+        if (profile && profile.role === 'admin') {
+            window.location.href = 'admin/index.html';
+        } else {
+            // Default student redirect
+             window.location.href = 'index.html';
+        }
+        
         return { data, error: null };
     } catch (error) {
         return { data: null, error };

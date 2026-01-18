@@ -116,7 +116,7 @@ function displayQuestion() {
                            name="answer" 
                            value="${index}"
                            ${userAnswers[question.id] === index ? 'checked' : ''}
-                           onchange="selectAnswer(${question.id}, ${index})">
+                           onchange="selectAnswer('${question.id}', ${index})">
                     <span class="option-text">${option}</span>
                 </label>
             `).join('')}
@@ -218,6 +218,7 @@ async function submitQuiz() {
 function displayResults(score) {
     const container = document.getElementById('question-container');
     const isPassed = score >= (currentQuiz.passing_score || 50);
+    const correctCount = currentQuestions.filter(q => userAnswers[q.id] === q.correct_answer).length;
     
     container.innerHTML = `
         <div class="quiz-results">
@@ -233,13 +234,20 @@ function displayResults(score) {
                     ? 'لقد اجتزت الاختبار بنجاح!' 
                     : 'لم تحصل على الدرجة المطلوبة. حاول مرة أخرى!'}
             </p>
-            <div class="result-details">
-                <p>إجاباتك الصحيحة: ${Object.keys(userAnswers).filter(qId => {
-                    const question = currentQuestions.find(q => q.id == qId);
-                    return question && userAnswers[qId] === question.correct_answer;
-                }).length} من ${currentQuestions.length}</p>
+            
+            <div class="result-summary">
+                 <p>عدد الأسئلة: ${currentQuestions.length}</p>
+                 <p>الإجابات الصحيحة: ${correctCount}</p>
+                 <p>الإجابات الخاطئة: ${currentQuestions.length - correctCount}</p>
             </div>
+
             <div class="result-actions">
+                <button class="btn btn-secondary" onclick="shareResult(${score})">
+                    <i class="fas fa-share-alt"></i> مشاركة النتيجة
+                </button>
+                <button class="btn btn-info" onclick="toggleDetails()">
+                    <i class="fas fa-eye"></i> تفاصيل النتيجة
+                </button>
                 <button class="btn btn-primary" onclick="window.location.href='quizzes.html'">
                     العودة للاختبارات
                 </button>
@@ -247,9 +255,71 @@ function displayResults(score) {
                     إعادة المحاولة
                 </button>
             </div>
+
+            <div id="result-details" class="result-details" style="display: none; margin-top: 20px; text-align: right;">
+                <h3>تفاصيل الإجابات</h3>
+                ${currentQuestions.map((q, index) => {
+                    const isCorrect = userAnswers[q.id] === q.correct_answer;
+                    const userAnswerIndex = userAnswers[q.id];
+                    const correctAnswerIndex = q.correct_answer;
+                    
+                    return `
+                        <div class="question-review" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: ${isCorrect ? '#e8f5e9' : '#ffebee'}">
+                            <h4>س${index + 1}: ${q.question_text}</h4>
+                            <div class="options-review">
+                                ${q.options.map((opt, optIndex) => {
+                                    let style = '';
+                                    let icon = '';
+                                    
+                                    if (optIndex === correctAnswerIndex) {
+                                        style = 'color: green; font-weight: bold;';
+                                        icon = '✓';
+                                    } else if (optIndex === userAnswerIndex && !isCorrect) {
+                                        style = 'color: red; text-decoration: line-through;';
+                                        icon = '✗';
+                                    }
+                                    
+                                    return `<div style="${style}">${opt} ${icon}</div>`;
+                                }).join('')}
+                            </div>
+                            ${!isCorrect && userAnswerIndex === undefined ? '<p style="color: orange;">لم يتم الإجابة</p>' : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
         </div>
     `;
 }
+
+/**
+ * Toggle details visibility
+ */
+window.toggleDetails = function() {
+    const details = document.getElementById('result-details');
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+    } else {
+        details.style.display = 'none';
+    }
+};
+
+/**
+ * Share result
+ */
+window.shareResult = function(score) {
+    const text = `لقد حصلت على ${score}% في اختبار "${currentQuiz.title}" على منصة AL-Pharmacist!`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'نتيجتي في الاختبار',
+            text: text,
+            url: window.location.href
+        }).catch(err => console.log('Error sharing:', err));
+    } else {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('تم نسخ النتيجة للحافظة!');
+        });
+    }
+};
 
 /**
  * Get user's quiz attempts
@@ -267,5 +337,27 @@ async function getUserAttempts(userId) {
     } catch (error) {
         console.error('Error fetching attempts:', error);
         return [];
+    }
+}
+
+/**
+ * Delete quiz
+ */
+async function deleteQuiz(quizId) {
+    if (!confirm('هل أنت متأكد من حذف هذا الاختبار؟ سيتم حذف جميع الأسئلة والنتائج المرتبطة به.')) return;
+    
+    try {
+        const { error } = await supabaseClient
+            .from('quizzes')
+            .delete()
+            .eq('id', quizId);
+            
+        if (error) throw error;
+        
+        alert('تم حذف الاختبار بنجاح');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error deleting quiz:', error);
+        alert('حدث خطأ أثناء الحذف');
     }
 }

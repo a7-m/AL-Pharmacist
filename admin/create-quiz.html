@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>إنشاء اختبار - AL-Pharmacist</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+        .question-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e9ecef;
+            position: relative;
+        }
+        .remove-question {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .option-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .option-group input[type="text"] {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container navbar-container">
+        <a href="index.html" class="navbar-brand">
+          💊 <span>AL-Pharmacist Admin</span>
+        </a>
+        <ul class="navbar-menu">
+            <li><a href="index.html" class="navbar-link">لوحة التحكم</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <section class="section">
+      <div class="container">
+        <div class="auth-card" style="max-width: 900px; margin: 0 auto;">
+          <h2 class="text-center mb-4">إنشاء اختبار جديد</h2>
+          <form id="createQuizForm">
+            <!-- Quiz Details -->
+            <div class="form-group">
+              <label for="quizTitle" class="form-label">عنوان الاختبار</label>
+              <input type="text" id="quizTitle" class="form-input" required placeholder="مثال: اختبار الأسبوع الأول">
+            </div>
+
+            <div class="form-group">
+              <label for="quizDescription" class="form-label">وصف الاختبار</label>
+              <textarea id="quizDescription" class="form-input" rows="2"></textarea>
+            </div>
+
+            <div class="form-group" style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label for="timeLimit" class="form-label">الوقت (دقيقة)</label>
+                    <input type="number" id="timeLimit" class="form-input" value="30">
+                </div>
+                <div style="flex: 1;">
+                    <label for="passingScore" class="form-label">درجة النجاح (%)</label>
+                    <input type="number" id="passingScore" class="form-input" value="50">
+                </div>
+            </div>
+
+            <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
+
+            <!-- Questions Section -->
+            <h3 class="mb-3">الأسئلة</h3>
+            <div id="questionsContainer">
+                <!-- Questions will be added here dynamically -->
+            </div>
+
+            <button type="button" id="addQuestionBtn" class="btn btn-outline btn-block mb-4">+ إضافة سؤال جديد</button>
+
+            <button type="submit" class="btn btn-primary btn-block">حفظ ونشر الاختبار</button>
+          </form>
+          <div id="message" class="mt-3 text-center"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Template for a Question -->
+    <template id="questionTemplate">
+        <div class="question-card" data-question-index="">
+            <span class="remove-question">حذف السؤال ❌</span>
+            <div class="form-group">
+                <label class="form-label">نص السؤال</label>
+                <input type="text" class="form-input question-text" required>
+            </div>
+            
+            <label class="form-label">الخيارات (حدد الإجابة الصحيحة)</label>
+            <div class="option-group">
+                <input type="radio" name="correct_qINDEX" value="0" required>
+                <input type="text" class="form-input option-input" placeholder="الخيار الأول" required>
+            </div>
+            <div class="option-group">
+                <input type="radio" name="correct_qINDEX" value="1">
+                <input type="text" class="form-input option-input" placeholder="الخيار الثاني" required>
+            </div>
+            <div class="option-group">
+                <input type="radio" name="correct_qINDEX" value="2">
+                <input type="text" class="form-input option-input" placeholder="الخيار الثالث" required>
+            </div>
+            <div class="option-group">
+                <input type="radio" name="correct_qINDEX" value="3">
+                <input type="text" class="form-input option-input" placeholder="الخيار الرابع" required>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/admin.js"></script>
+  </body>
+</html>

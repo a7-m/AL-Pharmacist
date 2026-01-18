@@ -11,7 +11,7 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container navbar-container">
-            <a href="dashboard.html" class="navbar-brand">
+            <a href="index.html" class="navbar-brand">
                 💊 <span>AL-Pharmacist</span>
             </a>
             <ul class="navbar-menu">
@@ -57,12 +57,20 @@
     <script>
         let allVideos = [];
         let currentCategory = 'all';
+        let isAdmin = false;
 
         // Protect page and load videos
         (async () => {
             const isAuth = await requireAuth();
             if (!isAuth) return;
             
+            // Check if admin
+            const user = await getCurrentUser();
+            if (user) {
+                const profile = await getUserProfile(user.id);
+                isAdmin = profile && profile.role === 'admin';
+            }
+
             await loadVideos();
         })();
 
@@ -82,7 +90,7 @@
 
         function filterAndDisplay() {
             const filteredVideos = filterVideosByCategory(allVideos, currentCategory);
-            renderVideoCards(filteredVideos, 'videosContainer');
+            renderVideoCards(filteredVideos, 'videosContainer', isAdmin);
         }
 
         // Filter tabs functionality

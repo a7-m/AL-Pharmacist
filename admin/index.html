@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>لوحة التحكم - AL-Pharmacist</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+        .admin-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: transform 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .admin-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+    </style>
+  </head>
+  <body>
+    <!-- Admin Navigation -->
+    <nav class="navbar">
+      <div class="container navbar-container">
+        <a href="../index.html" class="navbar-brand">
+          💊 <span>AL-Pharmacist</span> <small class="text-muted" style="font-size: 0.8rem; margin-right: 10px;">(Admin)</small>
+        </a>
+        <ul class="navbar-menu" id="navMenu">
+          <li><a href="../index.html" class="navbar-link">الموقع الرئيسي</a></li>
+          <li><a href="#" id="logoutBtn" class="navbar-link btn btn-outline">تسجيل الخروج</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <section class="section">
+      <div class="container">
+        <h2 class="mb-4">لوحة تحكم المسؤول</h2>
+        <div class="card-grid">
+          
+          <a href="add-video.html" class="admin-card">
+            <span class="admin-icon">📹</span>
+            <h3>إضافة فيديو جديد</h3>
+            <p>رفع محاضرات ومراجعات جديدة</p>
+          </a>
+
+          <a href="add-file.html" class="admin-card">
+            <span class="admin-icon">📁</span>
+            <h3>إضافة ملف جديد</h3>
+            <p>رفع ملفات PDF ومراجع</p>
+          </a>
+
+          <a href="create-quiz.html" class="admin-card">
+            <span class="admin-icon">📝</span>
+            <h3>إنشاء اختبار</h3>
+            <p>إضافة اختبارات وأسئلة جديدة</p>
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/admin.js"></script> 
+  </body>
+</html>

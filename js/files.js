@@ -23,6 +23,9 @@ async function getAllFiles() {
  * Get file download URL
  */
 function getFileDownloadUrl(filePath) {
+    if (filePath.startsWith('http')) {
+        return filePath;
+    }
     const { data } = supabaseClient
         .storage
         .from('files')
@@ -68,7 +71,7 @@ function getFileIcon(fileType) {
 /**
  * Render file cards
  */
-function renderFileCards(files, containerId) {
+function renderFileCards(files, containerId, isAdmin = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -97,8 +100,36 @@ function renderFileCards(files, containerId) {
                     <button class="btn btn-primary btn-sm" onclick="downloadFile('${fileUrl}', '${file.title}')">
                         تحميل
                     </button>
+                    ${isAdmin ? `
+                    <div style="margin-top: 10px; display: flex; gap: 5px; justify-content: center;">
+                        <button class="btn btn-sm btn-info" onclick="window.location.href='admin/add-file.html?id=${file.id}'">تعديل</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteFile('${file.id}')">حذف</button>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         `;
     }).join('');
+}
+
+/**
+ * Delete file
+ */
+async function deleteFile(fileId) {
+    if (!confirm('هل أنت متأكد من حذف هذا الملف؟')) return;
+    
+    try {
+        const { error } = await supabaseClient
+            .from('files')
+            .delete()
+            .eq('id', fileId);
+            
+        if (error) throw error;
+        
+        alert('تم حذف الملف بنجاح');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        alert('حدث خطأ أثناء الحذف');
+    }
 }

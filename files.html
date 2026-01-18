@@ -11,7 +11,7 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container navbar-container">
-            <a href="dashboard.html" class="navbar-brand">
+            <a href="index.html" class="navbar-brand">
                 💊 <span>AL-Pharmacist</span>
             </a>
             <ul class="navbar-menu">
@@ -48,11 +48,20 @@
     <script src="js/files.js"></script>
     
     <script>
+        let isAdmin = false;
+
         // Protect page and load files
         (async () => {
             const isAuth = await requireAuth();
             if (!isAuth) return;
             
+            // Check if admin
+            const user = await getCurrentUser();
+            if (user) {
+                const profile = await getUserProfile(user.id);
+                isAdmin = profile && profile.role === 'admin';
+            }
+
             await loadFiles();
         })();
 
@@ -61,7 +70,7 @@
             
             try {
                 const files = await getAllFiles();
-                renderFileCards(files, 'filesContainer');
+                renderFileCards(files, 'filesContainer', isAdmin);
             } catch (error) {
                 console.error('Error loading files:', error);
                 showError('حدث خطأ أثناء تحميل الملفات');

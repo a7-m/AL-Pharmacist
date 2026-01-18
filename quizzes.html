@@ -11,7 +11,7 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container navbar-container">
-            <a href="dashboard.html" class="navbar-brand">
+            <a href="index.html" class="navbar-brand">
                 💊 <span>AL-Pharmacist</span>
             </a>
             <ul class="navbar-menu">
@@ -48,10 +48,19 @@
     <script src="js/quizzes.js"></script>
     
     <script>
+        let isAdmin = false;
+
         // Protect page and load quizzes
         (async () => {
             const isAuth = await requireAuth();
             if (!isAuth) return;
+
+            // Check if admin
+            const user = await getCurrentUser();
+            if (user) {
+                const profile = await getUserProfile(user.id);
+                isAdmin = profile && profile.role === 'admin';
+            }
             
             await loadQuizzes();
         })();
@@ -91,6 +100,12 @@
                                 ${quiz.time_limit ? `<span>⏱️ الوقت: ${quiz.time_limit} دقيقة</span>` : ''}
                                 ${quiz.passing_score ? `<span>✓ درجة النجاح: ${quiz.passing_score}%</span>` : ''}
                             </div>
+                            ${isAdmin ? `
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                <button class="btn btn-sm btn-info" onclick="window.location.href='admin/create-quiz.html?id=${quiz.id}'">تعديل</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">حذف</button>
+                            </div>
+                            ` : ''}
                         </div>
                         <button class="btn btn-primary" onclick="startQuizPage('${quiz.id}')">
                             ابدأ الاختبار

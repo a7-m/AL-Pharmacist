@@ -11,7 +11,7 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container navbar-container">
-            <a href="dashboard.html" class="navbar-brand">
+            <a href="index.html" class="navbar-brand">
                 💊 <span>AL-Pharmacist</span>
             </a>
             <ul class="navbar-menu">
@@ -32,10 +32,11 @@
             <div id="loading"></div>
             
             <div id="videoContainer">
-                <div class="video-player-container">
-                    <video id="videoPlayer" class="video-player" controls>
+                <div class="video-player-container" id="playerWrapper">
+                    <video id="videoPlayer" class="video-player" controls style="display: none;">
                         المتصفح لا يدعم تشغيل الفيديو
                     </video>
+                    <iframe id="videoFrame" class="video-player" frameborder="0" allowfullscreen style="display: none;"></iframe>
                 </div>
                 
                 <div class="card" style="margin-top: 1.5rem;">
@@ -92,8 +93,22 @@
                 }
                 
                 // Update video player
+                // Update video player
                 const videoUrl = getVideoUrl(video.video_url);
-                document.getElementById('videoPlayer').src = videoUrl;
+                const videoPlayer = document.getElementById('videoPlayer');
+                const videoFrame = document.getElementById('videoFrame');
+
+                if (videoUrl.includes('drive.google.com') || videoUrl.includes('youtube.com') || videoUrl.includes('vimeo')) {
+                    videoPlayer.style.display = 'none';
+                    videoPlayer.pause();
+                    videoFrame.src = videoUrl;
+                    videoFrame.style.display = 'block';
+                } else {
+                    videoFrame.style.display = 'none';
+                    videoFrame.src = '';
+                    videoPlayer.src = videoUrl;
+                    videoPlayer.style.display = 'block';
+                }
                 
                 // Update video info
                 document.getElementById('videoTitle').textContent = video.title;

@@ -61,6 +61,9 @@ async function getVideoById(videoId) {
  * Get video URL from storage
  */
 function getVideoUrl(videoPath) {
+    if (videoPath.startsWith('http')) {
+        return videoPath;
+    }
     const { data } = supabaseClient
         .storage
         .from('videos')
@@ -72,7 +75,7 @@ function getVideoUrl(videoPath) {
 /**
  * Render video cards
  */
-function renderVideoCards(videos, containerId) {
+function renderVideoCards(videos, containerId, isAdmin = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -82,8 +85,8 @@ function renderVideoCards(videos, containerId) {
     }
 
     container.innerHTML = videos.map(video => `
-        <div class="video-card" onclick="window.location.href='video-player.html?id=${video.id}'">
-            <div class="video-thumbnail">
+        <div class="video-card">
+            <div class="video-thumbnail" onclick="window.location.href='video-player.html?id=${video.id}'">
                 ${video.thumbnail_url 
                     ? `<img src="${video.thumbnail_url}" alt="${video.title}">`
                     : '<div class="thumbnail-placeholder"><i class="icon">🎥</i></div>'
@@ -97,6 +100,12 @@ function renderVideoCards(videos, containerId) {
                     <span class="category-badge category-${video.category}">${getCategoryName(video.category)}</span>
                     <span class="video-date">${formatDate(video.created_at)}</span>
                 </div>
+                ${isAdmin ? `
+                <div class="card-actions" style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 10px;">
+                    <button class="btn btn-sm btn-info" onclick="window.location.href='admin/add-video.html?id=${video.id}'">تعديل</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteVideo('${video.id}')">حذف</button>
+                </div>
+                ` : ''}
             </div>
         </div>
     `).join('');
@@ -120,4 +129,26 @@ function getCategoryName(category) {
 function filterVideosByCategory(videos, category) {
     if (category === 'all') return videos;
     return videos.filter(video => video.category === category);
+}
+
+/**
+ * Delete video
+ */
+async function deleteVideo(videoId) {
+    if (!confirm('هل أنت متأكد من حذف هذا الفيديو؟')) return;
+    
+    try {
+        const { error } = await supabaseClient
+            .from('videos')
+            .delete()
+            .eq('id', videoId);
+            
+        if (error) throw error;
+        
+        alert('تم حذف الفيديو بنجاح');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error deleting video:', error);
+        alert('حدث خطأ أثناء الحذف');
+    }
 }
