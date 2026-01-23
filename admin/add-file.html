@@ -41,6 +41,13 @@
             </div>
 
             <div class="form-group">
+              <label for="subject" class="form-label">المادة الدراسية *</label>
+              <select id="subject" class="form-input" required>
+                <option value="">اختر المادة...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">مكان الرفع (Hosting)</label>
                 <div style="display: flex; gap: 20px; margin-bottom: 10px;">
                     <label style="cursor: pointer;">
@@ -88,8 +95,16 @@
     <script src="../js/config.js"></script>
     <script src="../js/supabase.js"></script>
     <script src="../js/utils.js"></script>
+    <script src="../js/subjects.js"></script>
     <script src="../js/cloudinary.js"></script>
     <script src="../js/google-drive.js"></script>
     <script src="../js/admin.js"></script>
+    
+    <script>
+      // Load subjects when page loads
+      document.addEventListener('DOMContentLoaded', async () => {
+        await renderSubjectSelector('subject', null, true);
+      });
+    </script>
   </body>
 </html>

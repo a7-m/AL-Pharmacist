@@ -33,6 +33,19 @@
         </div>
     </section>
 
+    <!-- Subjects Section -->
+    <section class="section subjects-section">
+        <div class="container">
+            <h2 class="text-center mb-4">المواد الدراسية 📚</h2>
+            <p class="text-center" style="color: var(--gray); margin-bottom: var(--spacing-lg);">
+                اختر المادة التي تريد دراستها
+            </p>
+            <div id="subjectsGrid" class="subjects-grid">
+                <!-- Subjects will be loaded here -->
+            </div>
+        </div>
+    </section>
+
     <!-- Dashboard Cards -->
     <section class="section">
         <div class="container">
@@ -84,6 +97,7 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/subjects.js"></script>
     <script src="js/videos.js"></script>
     <script src="js/quizzes.js"></script>
     <script src="js/files.js"></script>
@@ -102,6 +116,9 @@
                         `مرحباً ${profile.full_name}!`;
                 }
             }
+            
+            // Load subjects
+            await renderSubjectCards('subjectsGrid', 'videos.html?subject={id}');
             
             // Load statistics
             loadStatistics();

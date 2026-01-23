@@ -68,6 +68,13 @@
               <textarea id="quizDescription" class="form-input" rows="2"></textarea>
             </div>
 
+            <div class="form-group">
+              <label for="subject" class="form-label">المادة الدراسية *</label>
+              <select id="subject" class="form-input" required>
+                <option value="">اختر المادة...</option>
+              </select>
+            </div>
+
             <div class="form-group" style="display: flex; gap: 1rem;">
                 <div style="flex: 1;">
                     <label for="timeLimit" class="form-label">الوقت (دقيقة)</label>
@@ -129,6 +136,14 @@
     <script src="../js/config.js"></script>
     <script src="../js/supabase.js"></script>
     <script src="../js/utils.js"></script>
+    <script src="../js/subjects.js"></script>
     <script src="../js/admin.js"></script>
+    
+    <script>
+      // Load subjects when page loads
+      document.addEventListener('DOMContentLoaded', async () => {
+        await renderSubjectSelector('subject', null, true);
+      });
+    </script>
   </body>
 </html>

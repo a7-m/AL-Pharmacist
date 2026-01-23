@@ -36,6 +36,14 @@
     <!-- Quizzes Section -->
     <section class="section" style="padding-top: 0;">
         <div class="container">
+            <!-- Subject Filter -->
+            <div class="subject-filter-container">
+                <label class="subject-filter-label">اختر المادة:</label>
+                <div id="subjectFilterTabs" class="subject-filter-tabs">
+                    <!-- Subject tabs will be loaded here -->
+                </div>
+            </div>
+
             <div id="loading"></div>
             <div id="quizzesContainer"></div>
         </div>
@@ -46,23 +54,44 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/subjects.js"></script>
     <script src="js/quizzes.js"></script>
     
     <script>
+        let allQuizzes = [];
+        let currentSubject = null;
         let isAdmin = false;
 
         // Protect page and load quizzes
         (async () => {
             const isAuth = await requireAuth();
             if (!isAuth) return;
-
+            
             // Check if admin
             const user = await getCurrentUser();
             if (user) {
                 const profile = await getUserProfile(user.id);
                 isAdmin = profile && profile.role === 'admin';
             }
-            
+
+            // Load subject filters
+            await renderSubjectFilterTabs('subjectFilterTabs', (subjectId) => {
+                currentSubject = subjectId;
+                filterAndDisplay();
+            });
+
+            // Check URL for subject parameter
+            const urlSubject = getSubjectFromURL();
+            if (urlSubject) {
+                currentSubject = urlSubject;
+                document.querySelectorAll('[data-subject-id]').forEach(tab => {
+                    if (tab.dataset.subjectId === urlSubject) {
+                        document.querySelectorAll('[data-subject-id]').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                    }
+                });
+            }
+
             await loadQuizzes();
         })();
 
@@ -70,8 +99,8 @@
             showLoading('loading');
             
             try {
-                const quizzes = await getAllQuizzes();
-                displayQuizzes(quizzes);
+                allQuizzes = await getAllQuizzes();
+                filterAndDisplay();
             } catch (error) {
                 console.error('Error loading quizzes:', error);
                 showError('حدث خطأ أثناء تحميل الاختبارات');
@@ -80,44 +109,9 @@
             }
         }
 
-        function displayQuizzes(quizzes) {
-            const container = document.getElementById('quizzesContainer');
-            
-            if (quizzes.length === 0) {
-                container.innerHTML = '<p class="no-data">لا توجد اختبارات متاحة حاليًا</p>';
-                return;
-            }
-
-            container.innerHTML = quizzes.map(quiz => `
-                <div class="quiz-card">
-                    <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
-                        <div style="flex: 1;">
-                            <h3 style="margin-bottom: 0.5rem;">${quiz.title}</h3>
-                            <p style="color: var(--gray); margin-bottom: 1rem;">
-                                ${quiz.description || 'لا يوجد وصف'}
-                            </p>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.875rem; color: var(--gray);">
-                                <span>📝 عدد الأسئلة: ${quiz.questions?.[0]?.count || 'غير محدد'}</span>
-                                ${quiz.time_limit ? `<span>⏱️ الوقت: ${quiz.time_limit} دقيقة</span>` : ''}
-                                ${quiz.passing_score ? `<span>✓ درجة النجاح: ${quiz.passing_score}%</span>` : ''}
-                            </div>
-                            ${isAdmin ? `
-                            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                                <button class="btn btn-sm btn-info" onclick="window.location.href='admin/create-quiz.html?id=${quiz.id}'">تعديل</button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${quiz.id}')">حذف</button>
-                            </div>
-                            ` : ''}
-                        </div>
-                        <button class="btn btn-primary" onclick="startQuizPage('${quiz.id}')">
-                            ابدأ الاختبار
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function startQuizPage(quizId) {
-            window.location.href = `quiz-take.html?id=${quizId}`;
+        function filterAndDisplay() {
+            const filteredQuizzes = filterBySubject(allQuizzes, currentSubject);
+            renderQuizCards(filteredQuizzes, 'quizzesContainer', isAdmin);
         }
     </script>
 </body>

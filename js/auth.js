@@ -40,18 +40,26 @@ async function signIn(email, password) {
 
         if (error) throw error;
         
-        // Check Role
+        // Check Role & Subscription
         const { data: profile } = await supabaseClient
             .from('profiles')
-            .select('role')
+            .select('role, is_paid, paid_until')
             .eq('id', data.user.id)
             .single();
 
         if (profile && profile.role === 'admin') {
             window.location.href = 'admin/index.html';
         } else {
-            // Default student redirect
-             window.location.href = 'index.html';
+            // Check subscription status
+            const now = new Date();
+            const paidUntil = profile.paid_until ? new Date(profile.paid_until) : null;
+            
+            if (profile.is_paid && paidUntil && paidUntil > now) {
+                window.location.href = 'index.html';
+            } else {
+                // Not paid or expired
+                window.location.href = 'pricing.html';
+            }
         }
         
         return { data, error: null };
@@ -125,6 +133,29 @@ async function requireAuth() {
         window.location.href = 'login.html';
         return false;
     }
+
+    const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('role, is_paid, paid_until')
+        .eq('id', session.user.id)
+        .single();
+
+    if (profile && profile.role === 'admin') {
+        return true;
+    }
+
+    // Check subscription status
+    const now = new Date();
+    const paidUntil = profile?.paid_until ? new Date(profile.paid_until) : null;
+    
+    if (!profile?.is_paid || !paidUntil || paidUntil <= now) {
+        // Prevent infinite loop if already on pricing page
+        if (!window.location.href.includes('pricing.html')) {
+            window.location.href = 'pricing.html';
+        }
+        return false;
+    }
+
     return true;
 }
 
@@ -155,14 +186,25 @@ async function redirectIfAuthenticated() {
     if (session) {
         const { data: profile } = await supabaseClient
             .from('profiles')
-            .select('role')
+            .select('role, is_paid, paid_until')
             .eq('id', session.user.id)
             .single();
 
         if (profile && profile.role === 'admin') {
             window.location.href = 'admin/index.html';
         } else {
-            window.location.href = 'dashboard.html';
+             // Check subscription status
+            const now = new Date();
+            const paidUntil = profile.paid_until ? new Date(profile.paid_until) : null;
+            
+            if (profile.is_paid && paidUntil && paidUntil > now) {
+                window.location.href = 'dashboard.html';
+            } else {
+                 // Prevent infinite loop if already on pricing page
+                 if (!window.location.href.includes('pricing.html')) {
+                    window.location.href = 'pricing.html';
+                 }
+            }
         }
     }
 }

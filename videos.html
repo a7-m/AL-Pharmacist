@@ -36,6 +36,15 @@
     <!-- Filter Tabs -->
     <section class="section" style="padding-top: 0;">
         <div class="container">
+            <!-- Subject Filter -->
+            <div class="subject-filter-container">
+                <label class="subject-filter-label">اختر المادة:</label>
+                <div id="subjectFilterTabs" class="subject-filter-tabs">
+                    <!-- Subject tabs will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Category Filter -->
             <div class="filter-tabs">
                 <button class="filter-tab active" data-category="all">الكل</button>
                 <button class="filter-tab" data-category="lecture">المحاضرات</button>
@@ -53,11 +62,13 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/subjects.js"></script>
     <script src="js/videos.js"></script>
     
     <script>
         let allVideos = [];
         let currentCategory = 'all';
+        let currentSubject = null;
         let isAdmin = false;
 
         // Protect page and load videos
@@ -70,6 +81,25 @@
             if (user) {
                 const profile = await getUserProfile(user.id);
                 isAdmin = profile && profile.role === 'admin';
+            }
+
+            // Load subject filters
+            await renderSubjectFilterTabs('subjectFilterTabs', (subjectId) => {
+                currentSubject = subjectId;
+                filterAndDisplay();
+            });
+
+            // Check URL for subject parameter
+            const urlSubject = getSubjectFromURL();
+            if (urlSubject) {
+                currentSubject = urlSubject;
+                // Highlight the active subject tab
+                document.querySelectorAll('[data-subject-id]').forEach(tab => {
+                    if (tab.dataset.subjectId === urlSubject) {
+                        document.querySelectorAll('[data-subject-id]').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                    }
+                });
             }
 
             await loadVideos();
@@ -90,7 +120,8 @@
         }
 
         function filterAndDisplay() {
-            const filteredVideos = filterVideosByCategory(allVideos, currentCategory);
+            let filteredVideos = filterBySubject(allVideos, currentSubject);
+            filteredVideos = filterVideosByCategory(filteredVideos, currentCategory);
             renderVideoCards(filteredVideos, 'videosContainer', isAdmin);
         }
 

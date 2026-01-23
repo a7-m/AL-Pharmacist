@@ -367,11 +367,18 @@ async function handleAddVideo(e) {
         }
     }
 
+    const subjectId = document.getElementById('subject')?.value;
+    if (!subjectId) {
+        alert('يرجى اختيار المادة الدراسية');
+        return;
+    }
+
     try {
         const payload = {
             title,
             description,
             category,
+            subject_id: subjectId,
             video_url: videoUrl,
             google_drive_id: driveId,
             cloudinary_id: cloudinaryId,
@@ -507,11 +514,18 @@ async function handleAddFile(e) {
         // fileUrl is already set
     }
 
+    const subjectId = document.getElementById('subject')?.value;
+    if (!subjectId) {
+        alert('يرجى اختيار المادة الدراسية');
+        return;
+    }
+
     try {
         const payload = {
             title,
             description,
             file_type: fileType,
+            subject_id: subjectId,
             file_url: fileUrl,
             google_drive_id: driveId,
             cloudinary_id: cloudinaryId
@@ -599,12 +613,19 @@ async function handleCreateQuiz(e) {
     const description = document.getElementById('quizDescription').value;
     const timeLimit = document.getElementById('timeLimit').value;
     const passingScore = document.getElementById('passingScore').value;
+    const subjectId = document.getElementById('subject')?.value;
+    
+    if (!subjectId) {
+        alert('يرجى اختيار المادة الدراسية');
+        return;
+    }
 
     try {
         let quizId = editingId;
         const quizPayload = {
             title,
             description,
+            subject_id: subjectId,
             time_limit: parseInt(timeLimit),
             passing_score: parseInt(passingScore)
         };

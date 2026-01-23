@@ -36,6 +36,14 @@
     <!-- Files Section -->
     <section class="section" style="padding-top: 0;">
         <div class="container">
+            <!-- Subject Filter -->
+            <div class="subject-filter-container">
+                <label class="subject-filter-label">اختر المادة:</label>
+                <div id="subjectFilterTabs" class="subject-filter-tabs">
+                    <!-- Subject tabs will be loaded here -->
+                </div>
+            </div>
+
             <div id="loading"></div>
             <div id="filesContainer" style="display: flex; flex-direction: column; gap: 1rem;"></div>
         </div>
@@ -46,9 +54,12 @@
     <script src="js/supabase.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/subjects.js"></script>
     <script src="js/files.js"></script>
     
     <script>
+        let allFiles = [];
+        let currentSubject = null;
         let isAdmin = false;
 
         // Protect page and load files
@@ -63,6 +74,24 @@
                 isAdmin = profile && profile.role === 'admin';
             }
 
+            // Load subject filters
+            await renderSubjectFilterTabs('subjectFilterTabs', (subjectId) => {
+                currentSubject = subjectId;
+                filterAndDisplay();
+            });
+
+            // Check URL for subject parameter
+            const urlSubject = getSubjectFromURL();
+            if (urlSubject) {
+                currentSubject = urlSubject;
+                document.querySelectorAll('[data-subject-id]').forEach(tab => {
+                    if (tab.dataset.subjectId === urlSubject) {
+                        document.querySelectorAll('[data-subject-id]').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                    }
+                });
+            }
+
             await loadFiles();
         })();
 
@@ -70,14 +99,19 @@
             showLoading('loading');
             
             try {
-                const files = await getAllFiles();
-                renderFileCards(files, 'filesContainer', isAdmin);
+                allFiles = await getAllFiles();
+                filterAndDisplay();
             } catch (error) {
                 console.error('Error loading files:', error);
                 showError('حدث خطأ أثناء تحميل الملفات');
             } finally {
                 hideLoading('loading');
             }
+        }
+
+        function filterAndDisplay() {
+            const filteredFiles = filterBySubject(allFiles, currentSubject);
+            renderFileCards(filteredFiles, 'filesContainer', isAdmin);
         }
     </script>
 </body>
