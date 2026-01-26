@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>إدارة الطلاب - AL-Pharmacist</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="../js/theme.js"></script>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container navbar-container">
+        <a href="index.html" class="navbar-brand">
+          💊 <span>AL-Pharmacist Admin</span>
+        </a>
+        <ul class="navbar-menu">
+          <li><a href="index.html" class="navbar-link">لوحة التحكم</a></li>
+          <li><a href="#" id="logoutBtn" class="navbar-link btn btn-outline">تسجيل الخروج</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <section class="section">
+      <div class="container">
+        <div class="auth-card" style="max-width: 1200px; margin: 0 auto;">
+          <h2 class="text-center mb-2">إدارة الطلاب</h2>
+          <p class="text-center text-muted mb-4">
+            متابعة الحسابات، الاشتراكات، وتعديل صلاحيات الوصول للمواد.
+          </p>
+
+          <div class="student-admin-grid">
+            <div class="student-panel">
+              <div class="student-panel-header">
+                <h3 class="mb-1">قائمة الطلاب</h3>
+                <div class="student-stats">
+                  <span class="status-pill info" id="studentsCount">0 طالب</span>
+                  <span class="status-pill success" id="activeStudentsCount">0 مشترك</span>
+                </div>
+              </div>
+
+              <div class="form-row mt-2">
+                <input
+                  type="text"
+                  id="studentSearch"
+                  class="form-input"
+                  placeholder="ابحث بالاسم أو البريد الإلكتروني"
+                />
+                <select id="subjectFilter" class="form-input">
+                  <option value="">كل المواد</option>
+                </select>
+              </div>
+
+              <div class="table-responsive mt-3">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>الطالب</th>
+                      <th>الدور</th>
+                      <th>المواد</th>
+                      <th>تاريخ التسجيل</th>
+                      <th>آخر دخول</th>
+                    </tr>
+                  </thead>
+                  <tbody id="studentsTableBody">
+                    <tr>
+                      <td colspan="5" class="text-center">جاري التحميل...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="student-panel">
+              <h3 class="mb-2">تفاصيل الطالب</h3>
+              <div id="studentDetailsEmpty" class="student-empty-state text-center text-muted">
+                اختر طالباً من القائمة لعرض التفاصيل وإدارة الصلاحيات.
+              </div>
+
+              <div id="studentDetails" hidden>
+                <div class="student-card">
+                  <div class="student-card-header">
+                    <div>
+                      <h4 id="detailName">-</h4>
+                      <p class="text-muted" id="detailEmail">-</p>
+                    </div>
+                    <span class="status-pill" id="detailRole">طالب</span>
+                  </div>
+
+                  <div class="student-meta-grid mt-3">
+                    <div class="student-meta-item">
+                      <div class="text-muted">تاريخ التسجيل</div>
+                      <div id="detailCreated">-</div>
+                    </div>
+                    <div class="student-meta-item">
+                      <div class="text-muted">آخر دخول</div>
+                      <div id="detailLastLogin">غير متاح</div>
+                    </div>
+                    <div class="student-meta-item">
+                      <div class="text-muted">عدد المواد المفعلة</div>
+                      <div id="detailSubjectCount">0</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="student-card mt-3">
+                  <h4 class="mb-2">المواد المفعلة</h4>
+                  <div id="detailSubjects" class="subject-chip-list"></div>
+
+                  <form id="grantAccessForm" class="mt-3">
+                    <div class="form-row">
+                      <select id="grantSubjectSelect" class="form-input"></select>
+                      <button type="submit" class="btn btn-primary">تفعيل مادة</button>
+                    </div>
+                    <small class="text-muted">سيتم إضافة المادة للطالب فوراً.</small>
+                  </form>
+                </div>
+
+                <div class="student-card mt-3">
+                  <h4 class="mb-2">الصلاحيات</h4>
+                  <div class="form-row">
+                    <select id="roleSelect" class="form-input">
+                      <option value="student">طالب</option>
+                      <option value="admin">مشرف</option>
+                    </select>
+                    <button type="button" id="saveRoleBtn" class="btn btn-outline">حفظ الدور</button>
+                  </div>
+                  <div id="roleMessage" class="mt-2 text-center"></div>
+                </div>
+
+                <div class="student-card mt-3">
+                  <h4 class="mb-2">حذف الحساب</h4>
+                  <p class="text-muted">
+                    سيتم حذف بيانات الطالب من قاعدة البيانات نهائياً.
+                  </p>
+                  <button type="button" id="deleteStudentBtn" class="btn btn-danger">
+                    حذف الطالب/المدير
+                  </button>
+                  <div id="deleteMessage" class="mt-2 text-center"></div>
+                </div>
+
+                <div id="detailsMessage" class="mt-3 text-center"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/subjects.js"></script>
+    <script src="../js/admin.js"></script>
+    <script src="../js/students.js"></script>
+  </body>
+</html>

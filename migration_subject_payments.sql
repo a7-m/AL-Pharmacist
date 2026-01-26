@@ -43,11 +43,11 @@ ALTER TABLE public.subject_activation_codes ENABLE ROW LEVEL SECURITY;
 
 -- 6. Policies
 -- Subjects: allow admins to update pricing
+DROP POLICY IF EXISTS "Admins can update subjects" ON public.subjects;
+
 CREATE POLICY "Admins can update subjects" ON public.subjects FOR
 UPDATE USING (
-    auth.uid () IN (
-        SELECT id FROM public.profiles WHERE role = 'admin'
-    )
+    public.is_admin()
 );
 
 -- Subject access: users can view their access
@@ -55,29 +55,25 @@ CREATE POLICY "Users can view their subject access" ON public.subject_access FOR
 SELECT USING (auth.uid () = user_id);
 
 -- Subject access: admins can manage access
+DROP POLICY IF EXISTS "Admins can manage subject access" ON public.subject_access;
+
 CREATE POLICY "Admins can manage subject access" ON public.subject_access FOR ALL
 USING (
-    auth.uid () IN (
-        SELECT id FROM public.profiles WHERE role = 'admin'
-    )
+    public.is_admin()
 )
 WITH CHECK (
-    auth.uid () IN (
-        SELECT id FROM public.profiles WHERE role = 'admin'
-    )
+    public.is_admin()
 );
 
 -- Activation codes: admins only
+DROP POLICY IF EXISTS "Admins can manage activation codes" ON public.subject_activation_codes;
+
 CREATE POLICY "Admins can manage activation codes" ON public.subject_activation_codes FOR ALL
 USING (
-    auth.uid () IN (
-        SELECT id FROM public.profiles WHERE role = 'admin'
-    )
+    public.is_admin()
 )
 WITH CHECK (
-    auth.uid () IN (
-        SELECT id FROM public.profiles WHERE role = 'admin'
-    )
+    public.is_admin()
 );
 
 -- 7. Secure activation function
@@ -131,9 +127,14 @@ DROP POLICY IF EXISTS "Authenticated users can view quizzes" ON public.quizzes;
 DROP POLICY IF EXISTS "Authenticated users can view questions" ON public.questions;
 DROP POLICY IF EXISTS "Authenticated users can view files" ON public.files;
 
+DROP POLICY IF EXISTS "Users can view videos for accessible subjects" ON public.videos;
+DROP POLICY IF EXISTS "Users can view quizzes for accessible subjects" ON public.quizzes;
+DROP POLICY IF EXISTS "Users can view questions for accessible subjects" ON public.questions;
+DROP POLICY IF EXISTS "Users can view files for accessible subjects" ON public.files;
+
 CREATE POLICY "Users can view videos for accessible subjects" ON public.videos FOR
 SELECT USING (
-    auth.uid () IN (SELECT id FROM public.profiles WHERE role = 'admin')
+    public.is_admin()
     OR subject_id IS NULL
     OR EXISTS (
         SELECT 1
@@ -145,7 +146,7 @@ SELECT USING (
 
 CREATE POLICY "Users can view quizzes for accessible subjects" ON public.quizzes FOR
 SELECT USING (
-    auth.uid () IN (SELECT id FROM public.profiles WHERE role = 'admin')
+    public.is_admin()
     OR subject_id IS NULL
     OR EXISTS (
         SELECT 1
@@ -157,7 +158,7 @@ SELECT USING (
 
 CREATE POLICY "Users can view questions for accessible subjects" ON public.questions FOR
 SELECT USING (
-    auth.uid () IN (SELECT id FROM public.profiles WHERE role = 'admin')
+    public.is_admin()
     OR EXISTS (
         SELECT 1
         FROM public.quizzes q
@@ -176,7 +177,7 @@ SELECT USING (
 
 CREATE POLICY "Users can view files for accessible subjects" ON public.files FOR
 SELECT USING (
-    auth.uid () IN (SELECT id FROM public.profiles WHERE role = 'admin')
+    public.is_admin()
     OR subject_id IS NULL
     OR EXISTS (
         SELECT 1

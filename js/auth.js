@@ -127,7 +127,7 @@ async function requireAuth() {
 
     const { data: profile } = await supabaseClient
         .from('profiles')
-        .select('role, is_paid, paid_until')
+        .select('role')
         .eq('id', session.user.id)
         .single();
 
@@ -165,7 +165,7 @@ async function redirectIfAuthenticated() {
     if (session) {
         const { data: profile } = await supabaseClient
             .from('profiles')
-            .select('role, is_paid, paid_until')
+            .select('role')
             .eq('id', session.user.id)
             .single();
 

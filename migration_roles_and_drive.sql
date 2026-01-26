@@ -7,6 +7,23 @@
 ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student' CHECK (role IN ('admin', 'student'));
 
+-- Helper: check admin role without triggering RLS recursion on profiles
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT EXISTS (
+        SELECT 1
+        FROM public.profiles
+        WHERE id = auth.uid ()
+          AND role = 'admin'
+    );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
 -- 2. Add Google Drive ID support
 ALTER TABLE public.videos
 ADD COLUMN IF NOT EXISTS google_drive_id TEXT;
@@ -20,131 +37,71 @@ ADD COLUMN IF NOT EXISTS google_drive_id TEXT;
 -- (We'll just add new policies for Admins to perform INSERT/UPDATE/DELETE)
 
 -- Videos: Admins can do everything
+DROP POLICY IF EXISTS "Admins can insert videos" ON public.videos;
+DROP POLICY IF EXISTS "Admins can update videos" ON public.videos;
+DROP POLICY IF EXISTS "Admins can delete videos" ON public.videos;
+
 CREATE POLICY "Admins can insert videos" ON public.videos FOR
 INSERT
 WITH
-    CHECK (
-        auth.uid () IN (
-            SELECT id
-            FROM public.profiles
-            WHERE
-                role = 'admin'
-        )
-    );
+    CHECK (public.is_admin());
 
 CREATE POLICY "Admins can update videos" ON public.videos FOR
-UPDATE USING (
-    auth.uid () IN (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            role = 'admin'
-    )
-);
+UPDATE USING (public.is_admin());
 
 CREATE POLICY "Admins can delete videos" ON public.videos FOR DELETE USING (
-    auth.uid () IN (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            role = 'admin'
-    )
+    public.is_admin()
 );
 
 -- Files: Admins can do everything
+DROP POLICY IF EXISTS "Admins can insert files" ON public.files;
+DROP POLICY IF EXISTS "Admins can update files" ON public.files;
+DROP POLICY IF EXISTS "Admins can delete files" ON public.files;
+
 CREATE POLICY "Admins can insert files" ON public.files FOR
 INSERT
 WITH
-    CHECK (
-        auth.uid () IN (
-            SELECT id
-            FROM public.profiles
-            WHERE
-                role = 'admin'
-        )
-    );
+    CHECK (public.is_admin());
 
 CREATE POLICY "Admins can update files" ON public.files FOR
-UPDATE USING (
-    auth.uid () IN (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            role = 'admin'
-    )
-);
+UPDATE USING (public.is_admin());
 
 CREATE POLICY "Admins can delete files" ON public.files FOR DELETE USING (
-    auth.uid () IN (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            role = 'admin'
-    )
+    public.is_admin()
 );
 
 -- Quizzes: Admins can do everything
+DROP POLICY IF EXISTS "Admins can insert quizzes" ON public.quizzes;
+DROP POLICY IF EXISTS "Admins can update quizzes" ON public.quizzes;
+DROP POLICY IF EXISTS "Admins can delete quizzes" ON public.quizzes;
+
 CREATE POLICY "Admins can insert quizzes" ON public.quizzes FOR
 INSERT
 WITH
-    CHECK (
-        auth.uid () IN (
-            SELECT id
-            FROM public.profiles
-            WHERE
-                role = 'admin'
-        )
-    );
+    CHECK (public.is_admin());
 
 CREATE POLICY "Admins can update quizzes" ON public.quizzes FOR
-UPDATE USING (
-    auth.uid () IN (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            role = 'admin'
-    )
-);
+UPDATE USING (public.is_admin());
 
 CREATE POLICY "Admins can delete quizzes" ON public.quizzes FOR DELETE USING (
-    auth.uid () IN (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            role = 'admin'
-    )
+    public.is_admin()
 );
 
 -- Questions: Admins can do everything
+DROP POLICY IF EXISTS "Admins can insert questions" ON public.questions;
+DROP POLICY IF EXISTS "Admins can update questions" ON public.questions;
+DROP POLICY IF EXISTS "Admins can delete questions" ON public.questions;
+
 CREATE POLICY "Admins can insert questions" ON public.questions FOR
 INSERT
 WITH
-    CHECK (
-        auth.uid () IN (
-            SELECT id
-            FROM public.profiles
-            WHERE
-                role = 'admin'
-        )
-    );
+    CHECK (public.is_admin());
 
 CREATE POLICY "Admins can update questions" ON public.questions FOR
-UPDATE USING (
-    auth.uid () IN (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            role = 'admin'
-    )
-);
+UPDATE USING (public.is_admin());
 
 CREATE POLICY "Admins can delete questions" ON public.questions FOR DELETE USING (
-    auth.uid () IN (
-        SELECT id
-        FROM public.profiles
-        WHERE
-            role = 'admin'
-    )
+    public.is_admin()
 );
 
 -- Profiles: Only Admins (or self) can update role?

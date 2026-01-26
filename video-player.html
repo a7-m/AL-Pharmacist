@@ -101,7 +101,7 @@
 
             const user = await getCurrentUser();
             const profile = user ? await getUserProfile(user.id) : null;
-            const watermarkText =  'AL-Pharmacist';
+            const watermarkText = profile?.full_name || user?.email || 'AL-Pharmacist';
 
             enableContentProtection({
                 watermarkText,
