@@ -163,9 +163,11 @@
           
           // Populate activation section selector
           const activationSectionSelect = document.getElementById('activationSectionSelect');
-          activationSectionSelect.innerHTML = sections.map(s =>
-            `<option value="${s.id}">${s.name_ar} - ${s.price_egp} جنيه</option>`
-          ).join('');
+          activationSectionSelect.innerHTML = sections.map(s => {
+            const subjectName = s.subjects?.name_ar || '';
+            const displayName = subjectName ? `${subjectName} - ${s.name_ar}` : s.name_ar;
+            return `<option value="${s.id}">${displayName} - ${s.price_egp} جنيه</option>`;
+          }).join('');
           
           // Load activation codes for first section
           if (sections.length > 0) {
@@ -198,7 +200,7 @@
         tbody.innerHTML = sections.map(section => `
           <tr>
             <td>
-              <strong>${section.name_ar}</strong>
+              <strong>${section.subjects?.name_ar ? section.subjects.name_ar + ' - ' : ''}${section.name_ar}</strong>
               <div class="text-muted" style="font-size: 0.85rem;">${section.name_en}</div>
             </td>
             <td>

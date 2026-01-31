@@ -14,6 +14,7 @@
     />
     <script src="../js/theme.js"></script>
     <script src="../js/mobile-nav.js" defer></script>
+    <link rel="icon" type="image/png" href="../assets/images/logo.png" />
     <style>
       .management-grid {
         display: grid;
@@ -455,7 +456,7 @@
         container.innerHTML = sections.map(section => `
           <div class="item-card">
             <div class="item-info">
-              <div class="item-title">${section.name_ar}</div>
+              <div class="item-title">${section.subjects?.name_ar ? section.subjects.name_ar + ' - ' : ''}${section.name_ar}</div>
               <div class="item-subtitle">${section.name_en} - ${section.price_egp} جنيه</div>
             </div>
             <div class="item-actions">

@@ -12,7 +12,7 @@ async function getSubjectSections(subjectId) {
     try {
         const { data, error } = await supabaseClient
             .from('subject_sections')
-            .select('*')
+            .select('*, subjects:subject_id(name_ar, name_en, icon)')
             .eq('subject_id', subjectId)
             .order('section_order', { ascending: true });
 
@@ -105,7 +105,8 @@ async function renderSectionSelector(selectElementId, subjectId = null, selected
         sections.forEach(section => {
             const option = document.createElement('option');
             option.value = section.id;
-            option.textContent = section.name_ar;
+            const subjectName = section.subjects?.name_ar;
+            option.textContent = subjectName ? `${subjectName} - ${section.name_ar}` : section.name_ar;
             if (selectedId && section.id === selectedId) {
                 option.selected = true;
             }

@@ -179,9 +179,11 @@ function renderSectionFilters() {
         } else {
             sectionFilter.innerHTML = `
                 <option value="">كل الأقسام</option>
-                ${sectionsCache.map(section => `
-                    <option value="${section.id}">${section.icon || '📖'} ${section.name_ar}</option>
-                `).join('')}
+                ${sectionsCache.map(section => {
+                    const subjectName = section.subjects?.name_ar || '';
+                    const displayName = subjectName ? `${subjectName} - ${section.name_ar}` : section.name_ar;
+                    return `<option value="${section.id}">${section.icon || '📖'} ${displayName}</option>`;
+                }).join('')}
             `;
         }
     }
@@ -190,9 +192,11 @@ function renderSectionFilters() {
         if (sectionsCache.length === 0) {
             grantSelect.innerHTML = '<option value="">لا توجد أقسام</option>';
         } else {
-            grantSelect.innerHTML = sectionsCache.map(section => `
-                <option value="${section.id}">${section.icon || '📖'} ${section.name_ar}</option>
-            `).join('');
+            grantSelect.innerHTML = sectionsCache.map(section => {
+                const subjectName = section.subjects?.name_ar || '';
+                const displayName = subjectName ? `${subjectName} - ${section.name_ar}` : section.name_ar;
+                return `<option value="${section.id}">${section.icon || '📖'} ${displayName}</option>`;
+            }).join('');
         }
     }
 }
@@ -368,9 +372,11 @@ function updateGrantSelect(accessList) {
 
     select.innerHTML = sectionsCache.map(section => {
         const isActive = activeSet.has(section.id);
+        const subjectName = section.subjects?.name_ar || '';
+        const displayName = subjectName ? `${subjectName} - ${section.name_ar}` : section.name_ar;
         return `
             <option value="${section.id}" ${isActive ? 'disabled' : ''}>
-                ${section.icon || '📖'} ${section.name_ar}${isActive ? ' (مفعل)' : ''}
+                ${section.icon || '📖'} ${displayName}${isActive ? ' (مفعل)' : ''}
             </option>
         `;
     }).join('');
