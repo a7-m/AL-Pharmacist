@@ -474,19 +474,19 @@ a:hover {
     var(--primary-light)
   );
   color: var(--white);
-  padding: var(--spacing-xl) 0;
+  padding: 1.5rem 0;
   text-align: center;
 }
 
 .hero-title {
   font-size: var(--font-size-3xl);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 0.5rem;
   color: var(--white);
 }
 
 .hero-subtitle {
   font-size: var(--font-size-lg);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1rem;
   opacity: 0.9;
 }
 
@@ -1696,9 +1696,9 @@ a:hover {
   border: 1px solid #f2c99a;
   border-right: 6px solid var(--warning);
   color: #5d3b16;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1rem;
   box-shadow: var(--shadow-sm);
 }
 
@@ -2540,7 +2540,7 @@ body.dark-mode .announcement-item {
 
 /* Fix Hamburger Menu Color */
 .hamburger-menu span {
-  background-color: #f4e8d2 !important;
+  background-color: #dac195 !important;
 }
 
 /* Ensure consistent text colors in dark mode */

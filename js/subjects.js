@@ -213,16 +213,8 @@ async function renderSubjectFilterTabs(containerId, onFilterChange) {
         container.querySelectorAll('.filter-tab').forEach(tab => {
             tab.addEventListener('click', async () => {
                 const subjectId = tab.dataset.subjectId;
-                if (subjectId !== 'all') {
-                    const status = await getSubjectAccessStatus(subjectId);
-                    if (!status.hasAccess) {
-                        const nextUrl = new URL(window.location.href);
-                        nextUrl.searchParams.set('subject', subjectId);
-                        const nextPath = `${nextUrl.pathname}${nextUrl.search}`;
-                        window.location.href = buildSubjectPaymentUrl(subjectId, nextPath);
-                        return;
-                    }
-                }
+                // Subject access check removed - all subjects are free to view
+                // Sections will handle their own access control
 
                 // Update active state
                 container.querySelectorAll('.filter-tab').forEach(t => 
